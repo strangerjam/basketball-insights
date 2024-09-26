@@ -3,11 +3,11 @@ from enum import Enum
 
 class LocationName(Enum):
     HOME = 'Home'
-    AWAY = 'Away'
+    ROAD = 'Road'
 
 class LocationCode(Enum):
     HOME = 'home'
-    AWAY = 'away'
+    ROAD = 'road'
 
 class OutcomeName(Enum):
     WIN = 'Win'
@@ -43,7 +43,7 @@ class GraphTypeName(Enum):
 
 LOCATION = {
     LocationCode.HOME.value : LocationName.HOME.value,
-    LocationCode.AWAY.value : LocationName.AWAY.value
+    LocationCode.ROAD.value : LocationName.ROAD.value
 }
 
 OUTCOME = {
@@ -52,7 +52,7 @@ OUTCOME = {
 }
 
 STATISTICS_TYPE = {
-    StatisticsTypeCode.OUTCOME.value : StatisticsTypeName.OUTCOME.value,
+    # StatisticsTypeCode.OUTCOME.value : StatisticsTypeName.OUTCOME.value,
     StatisticsTypeCode.PTS.value : StatisticsTypeName.PTS.value,
     StatisticsTypeCode.FG2M.value : StatisticsTypeName.FG2M.value,
     StatisticsTypeCode.FG3M.value : StatisticsTypeName.FG3M.value,

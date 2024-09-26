@@ -32,14 +32,14 @@ SEASON_TYPE = {
 }
 
 SEASON_YEAR = {
-    LeagueCode.NBA.value : [
-        Season.current_season,
-        Season.previous_season
-    ],
-    LeagueCode.WNBA.value : [
-        WnbaSeason.current_season,
-        WnbaSeason.previous_season
-    ]
+    LeagueCode.NBA.value : {
+        Season.current_season : Season.current_season,
+        Season.previous_season : Season.previous_season
+    },
+    LeagueCode.WNBA.value : {
+        WnbaSeason.current_season : WnbaSeason.current_season,
+        WnbaSeason.previous_season : WnbaSeason.previous_season
+    }
 }
 
 def season_type_value_by_key(key):

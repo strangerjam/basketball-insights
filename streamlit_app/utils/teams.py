@@ -1,4 +1,5 @@
-import sys
+import streamlit as st
+
 import pandas as pd
 
 from nba_api.stats.static import teams
@@ -9,33 +10,66 @@ from utils.league import LeagueCode
 
 # get NBA teams data from nba api
 # https://github.com/swar/nba_api/blob/master/docs/nba_api/stats/static/teams.md
-def try_get_teams():
+def get_nba_teams():
     try:
         result = teams.get_teams()
+        result = pd.json_normalize(result)
     except ConnectionError:
-        print("Couldn't get NBA teams")
-        sys.exit(1)
+        print('Couldn`t get NBA teams')
     else:
-        print("NBA teams data received successfully")
+        print('NBA teams data received successfully')
         return result
 
 # get WNBA teams data from nba api
 # https://github.com/swar/nba_api/blob/master/docs/nba_api/stats/static/teams.md
-def try_get_wnba_teams():
+def get_wnba_teams():
     try:
         result = teams.get_wnba_teams()
+        result = pd.json_normalize(result)
     except ConnectionError:
-        print("Couldn't get NBA teams")
-        sys.exit(1)
+        print('Couldn`t get NBA teams')
     else:
-        print("WNBA teams data received successfully")
+        print('WNBA teams data received successfully')
         return result
 
-# define teams for each league
-TEAMS = {
-    LeagueCode.NBA.value : pd.json_normalize(try_get_teams()),
-    LeagueCode.WNBA.value : pd.json_normalize(try_get_wnba_teams())
-}
+# get teams for the selected league
+@st.cache_data(ttl=3600, show_spinner=False)
+def get_league_teams(league):
+    if league == LeagueCode.NBA.value:
+        return get_nba_teams()
+    elif league == LeagueCode.WNBA.value:
+        return get_wnba_teams()
+    else:
+        print('Unknown league is selected')
+
+# get team's full name based on team id and league
+# https://github.com/swar/nba_api/blob/master/docs/nba_api/stats/static/teams.md
+@st.cache_data(ttl=3600, show_spinner=False)
+def find_team_full_name_by_id(league, team_id):
+    print(team_id)
+    if team_id:
+        if league == LeagueCode.NBA.value:
+            try:
+                result = teams.find_team_name_by_id(team_id=team_id)
+                result = result['full_name']
+            except ConnectionError:
+                print('Couldn`t fine team name by id (NBA)')
+            else:
+                print('Team name (NBA) by id was found successfully')
+                return result
+        elif league == LeagueCode.WNBA.value:
+            try:
+                result = teams.find_wnba_team_name_by_id(team_id=team_id)
+                result = result['full_name']
+            except ConnectionError:
+                print('Couldn`t fine team name by id (WNBA)')
+            else:
+                print('Team name (WNBA) by id was found successfully')
+                return result
+        else:
+            print('Unknown league is selected')
+    else:
+        print('None team was selected')
 
 
 def team_head_coach(team_id, season_year):
@@ -58,14 +92,13 @@ def team_head_coach(team_id, season_year):
         coaches = commonteamroster.CommonTeamRoster(team_id=team_id, season=season_year).coaches.get_data_frame()
     except ConnectionError:
         print(
-            "Couldn't get the data from commonteamroster endpoint, coaches dataset\n",
-            "Parameters:\n",
-            f"Season Year Code: {season_year}\n",
-            f"Team ID: {team_id}\n"
+            'Couldn`t get the data from commonteamroster endpoint, coaches dataset\n',
+            'Parameters:\n',
+            f'Season Year Code: {season_year}\n',
+            f'Team ID: {team_id}\n'
         )
-        sys.exit(1)
     else:
-        print("coaches data received successfully")
+        print('Coaches data received successfully')
         # select info for head coach only
         head_coach = coaches.loc[coaches.COACH_TYPE == 'Head Coach', ]
 
@@ -96,12 +129,11 @@ def team_roster(league_id, team_id, season_year):
         ).common_team_roster.get_data_frame()
     except ConnectionError:
         print(
-            "Couldn't get the data from commonteamroster endpoint, common_team_roster dataset\n",
-            "Parameters:\n",
-            f"Season Year Code: {season_year}\n",
-            f"Team ID: {team_id}\n"
+            'Couldn`t get the data from commonteamroster endpoint, common_team_roster dataset\n',
+            'Parameters:\n',
+            f'Season Year Code: {season_year}\n',
+            f'Team ID: {team_id}\n'
         )
-        sys.exit(1)
     else:
-        print("roster data received successfully")
+        print('Roster data received successfully')
         return roster
