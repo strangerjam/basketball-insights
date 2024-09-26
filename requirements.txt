@@ -2,3 +2,4 @@ nba_api==1.5.0
 pandas==2.2.2
 plotly==5.23.0
 streamlit==1.38.0
+streamlit_javascript==0.1.5
