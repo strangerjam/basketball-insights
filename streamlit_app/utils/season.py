@@ -1,3 +1,5 @@
+import streamlit as st
+
 from enum import Enum
 
 from nba_api.stats.library.parameters import Season, WnbaSeason
@@ -41,10 +43,3 @@ SEASON_YEAR = {
         WnbaSeason.previous_season : WnbaSeason.previous_season
     }
 }
-
-def season_type_value_by_key(key):
-    '''
-        Function is used for the Streamlit's input to modify the display of selected options
-    '''
-    
-    return SEASON_TYPE[key]

@@ -1,5 +1,6 @@
 from enum import Enum
 
+from utils.league import LeagueCode
 
 class LocationName(Enum):
     HOME = 'Home'
@@ -18,7 +19,8 @@ class OutcomeCode(Enum):
     LOSS = 'loss'
 
 class StatisticsTypeCode(Enum):
-    OUTCOME = 'MATCHUP_OUTCOME'
+    SCORE_DIFF = 'SCORE_DIFF'
+    # OUTCOME = 'OUTCOME'
     PTS = 'PTS'
     FG2M = 'FG2M'
     FG3M = 'FG3M'
@@ -26,7 +28,8 @@ class StatisticsTypeCode(Enum):
     AST = 'AST'
 
 class StatisticsTypeName(Enum):
-    OUTCOME = 'Outcome'
+    SCORE_DIFF = 'Score Difference'
+    # OUTCOME = 'Outcome'
     PTS = 'Total Points'
     FG2M = '2-Point Field Goals'
     FG3M = '3-Point Field Goals'
@@ -52,6 +55,7 @@ OUTCOME = {
 }
 
 STATISTICS_TYPE = {
+    StatisticsTypeCode.SCORE_DIFF.value : StatisticsTypeName.SCORE_DIFF.value,
     # StatisticsTypeCode.OUTCOME.value : StatisticsTypeName.OUTCOME.value,
     StatisticsTypeCode.PTS.value : StatisticsTypeName.PTS.value,
     StatisticsTypeCode.FG2M.value : StatisticsTypeName.FG2M.value,
@@ -70,3 +74,31 @@ GRAPH_TYPE = {
     GraphTypeCode.BAR.value : GraphTypeName.BAR.value,
     GraphTypeCode.BOX.value : GraphTypeName.BOX.value
 }
+
+# length of the standard period and overtime in minutes for different leagues
+GAME_TIME = {
+    LeagueCode.NBA.value : {
+        'period' : 12,
+        'overtime' : 5
+    },
+    LeagueCode.WNBA.value : {
+        'period' : 10,
+        'overtime' : 5
+    }
+}
+
+
+def format_statistics_type_options(key):
+    '''
+        Function is used for the Streamlit's input to modify the display of selected options
+    '''
+
+    return STATISTICS_TYPE[key]
+
+
+def format_graph_type_options(key):
+    '''
+        Function is used for the Streamlit's input to modify the display of selected options
+    '''
+
+    return GRAPH_TYPE[key]

@@ -2,11 +2,10 @@ import streamlit as st
 from streamlit_javascript import st_javascript
 
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
 
-from utils.league import LEAGUE, league_value_by_key
-from utils.season import SEASON_YEAR, SEASON_TYPE, SeasonTypeCode, season_type_value_by_key
-from utils.teams import get_league_teams, find_team_full_name_by_id
+from utils.league import LEAGUE, format_league_options
+from utils.season import SEASON_YEAR
+from utils.teams import get_league_teams, find_team_info_by_id, format_team_options
 
 def selected_page():
     '''
@@ -26,24 +25,16 @@ def selected_page():
         'page': page
     }
 
-def define_team_options():
-    '''
-        Define team option to select
-    '''
-    league = st.session_state.league
 
-    teams = get_league_teams(league).sort_values(by='full_name')
-    options = teams.id
-
-    return options
-
-def format_team_options(team_id):
+def format_game_date(date_str):
     '''
-        Define the selected league from UI and calls the function to define selected team's full name
+        Format date string to `01 Jan, 2024` format
     '''
-    league = st.session_state.league
-    
-    return find_team_full_name_by_id(league=league, team_id=team_id)
+    date_dt = datetime.strptime(date_str, '%Y-%m-%d')
+
+    date_str_formatted = datetime.strftime(date_dt, '%d %b, %Y')
+
+    return date_str_formatted
 
 def main_controls():
     '''
@@ -51,54 +42,33 @@ def main_controls():
     '''
 
     with st.sidebar:
-        st.selectbox(
+        st.radio(
             label='League', key='league',
             options=LEAGUE,
-            format_func=league_value_by_key
+            horizontal=True,
+            format_func=format_league_options
         )
 
-        st.selectbox(
-            label='Season', key='season',
-            options=SEASON_YEAR[st.session_state.league]
+        st.radio(
+            label='Season', key='season_year',
+            options=SEASON_YEAR[st.session_state.league],
+            horizontal=True
         )
 
-        st.multiselect(
-            label='Season Type', key='season_type',
-            options=SEASON_TYPE,
-            default=[SeasonTypeCode.PLAYOFF.value, SeasonTypeCode.REGULAR.value],
-            format_func=season_type_value_by_key,
-            help='Unselected season type means all season types.'
-        )
+        # st.divider()
 
-        st.divider()
-
-        st.selectbox(
-            label='Base Team', key='team_base',
-            options=define_team_options(),
-            format_func=format_team_options
-        )
-
-        st.selectbox(
-            label='Matchup Team', key='team_matchup',
-            options=define_team_options(),
-            format_func=format_team_options,
-            index=None,
-            # disabled=st.session_state.team_1 is None,
-            help='The second team can only be selected after the first team has been selected.'
-        )
-
-        st.toggle(label='Include Date Range', key='toggle_date_range', value=False)
+        # st.toggle(label='Include Date Range', key='toggle_date_range', value=False)
         
-        if st.session_state.toggle_date_range:
-            st.session_state.date_range = [
-                datetime.today().date() - relativedelta(days=30),
-                datetime.today().date()
-            ]
+        # if st.session_state.toggle_date_range:
+        #     st.session_state.date_range = [
+        #         datetime.today().date() - relativedelta(days=30),
+        #         datetime.today().date()
+        #     ]
             
-            st.date_input(
-                label='Date', key='date_range',
-                max_value=datetime.today().date(),
-                help='Use to filter by game dates. By default last 30 days interval is selected.'
-            )
-        else:
-            st.session_state.date_range = None
+        #     st.date_input(
+        #         label='Date', key='date_range',
+        #         max_value=datetime.today().date(),
+        #         help='Use to filter by game dates. By default last 30 days interval is selected.'
+        #     )
+        # else:
+        #     st.session_state.date_range = None

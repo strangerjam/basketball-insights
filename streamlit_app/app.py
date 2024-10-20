@@ -7,7 +7,7 @@ league_page = st.Page(page='ui/pages/league.py', title='League')
 team_page = st.Page(page='ui/pages/team.py', title='Team')
 game_page = st.Page(page='ui/pages/game.py', title='Game')
 
-# define navigation
+# setup navigation
 pg = st.navigation(
     pages=[
         league_page,
@@ -16,7 +16,7 @@ pg = st.navigation(
     ]
 )
 
-# set global confiugs
+# set global configs
 st.set_page_config(
     page_title='Basketball Insights',
     layout='wide',

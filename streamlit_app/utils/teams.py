@@ -45,32 +45,58 @@ def get_league_teams(league):
 # get team's full name based on team id and league
 # https://github.com/swar/nba_api/blob/master/docs/nba_api/stats/static/teams.md
 @st.cache_data(ttl=3600, show_spinner=False)
-def find_team_full_name_by_id(league, team_id):
-    print(team_id)
+def find_team_info_by_id(league, team_id, value=None):
     if team_id:
         if league == LeagueCode.NBA.value:
             try:
                 result = teams.find_team_name_by_id(team_id=team_id)
-                result = result['full_name']
+                result = result[value] if value else result
             except ConnectionError:
-                print('Couldn`t fine team name by id (NBA)')
+                print(f'Couldn`t fine team info {value} by id {team_id} (NBA)')
             else:
-                print('Team name (NBA) by id was found successfully')
+                print(f'Team info (NBA) by id {team_id} was found successfully')
                 return result
         elif league == LeagueCode.WNBA.value:
             try:
                 result = teams.find_wnba_team_name_by_id(team_id=team_id)
-                result = result['full_name']
+                result = result[value] if value else result
             except ConnectionError:
-                print('Couldn`t fine team name by id (WNBA)')
+                print(f'Couldn`t fine team info {value} by id {team_id} (WNBA)')
             else:
-                print('Team name (WNBA) by id was found successfully')
+                print(f'Team info {value} (WNBA) by id {team_id} was found successfully')
                 return result
         else:
-            print('Unknown league is selected')
+            print(f'Unknown league is selected: {league}')
     else:
         print('None team was selected')
 
+# get team's full name based on team id and league
+# https://github.com/swar/nba_api/blob/master/docs/nba_api/stats/static/teams.md
+@st.cache_data(ttl=3600, show_spinner=False)
+def find_team_info_by_abbreviation(league, abbreviation, value=None):
+    if abbreviation:
+        if league == LeagueCode.NBA.value:
+            try:
+                result = teams.find_team_by_abbreviation(abbreviation=abbreviation)
+                result = result[value] if value else result
+            except ConnectionError:
+                print(f'Couldn`t fine team info {value} by abbreviation {abbreviation} (NBA)')
+            else:
+                print(f'Team info {value} (NBA) by abbreviation {abbreviation} was found successfully')
+                return result
+        elif league == LeagueCode.WNBA.value:
+            try:
+                result = teams.find_wnba_team_by_abbreviation(abbreviation=abbreviation)
+                result = result[value] if value else result
+            except ConnectionError:
+                print(f'Couldn`t fine team name by abbreviation {abbreviation} (WNBA)')
+            else:
+                print(f'Team info {value} (WNBA) by abbreviation {abbreviation} was found successfully')
+                return result
+        else:
+            print(f'Unknown league is selected: {league}')
+    else:
+        print('None team was selected')
 
 def team_head_coach(team_id, season_year):
     '''
@@ -137,3 +163,22 @@ def team_roster(league_id, team_id, season_year):
     else:
         print('Roster data received successfully')
         return roster
+    
+def define_team_options():
+    '''
+        Define team option to select
+    '''
+    league = st.session_state.league
+
+    teams = get_league_teams(league).sort_values(by='full_name')
+    options = teams.id
+
+    return options
+
+def format_team_options(team_id):
+    '''
+        Define the selected league from UI and calls the function to define selected team's full name
+    '''
+    league = st.session_state.league
+    
+    return find_team_info_by_id(league=league, team_id=team_id, value='full_name')

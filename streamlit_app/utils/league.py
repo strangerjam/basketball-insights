@@ -1,5 +1,6 @@
 from enum import Enum
 
+from nba_api.stats.endpoints import leaguestandingsv3
 
 class LeagueName(Enum):
     NBA = 'NBA'
@@ -19,7 +20,7 @@ LEAGUE = {
     LeagueCode.WNBA.value : LeagueName.WNBA.value
 }
 
-def league_value_by_key(key):
+def format_league_options(key):
     '''
         Function is used for the Streamlit's input to modify the display of selected options
     '''

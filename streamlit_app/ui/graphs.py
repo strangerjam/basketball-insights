@@ -6,6 +6,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 from utils.params import STATISTICS_TYPE, StatisticsTypeCode, OutcomeName, GraphTypeCode
+from utils.teams import find_team_info_by_abbreviation
 
 # set default template for all graphs
 pio.templates.default = "plotly_white"
@@ -271,14 +272,16 @@ def make_team_statistics_graph(df, statistics_type, graph_type, matchup_team):
             recent_game = None
     else:
         recent_game = None
+        
+    print(df.iloc[0, ])
 
     # make graph depends on UI's inputs
-    if statistics_type == StatisticsTypeCode.OUTCOME.value:
-        fig = make_team_statistics_graph_outcome(
-            df=df,
-            matchup_team=matchup_team
-        )
-    elif graph_type == GraphTypeCode.BOX.value:
+    # if statistics_type == StatisticsTypeCode.OUTCOME.value:
+    #     fig = make_team_statistics_graph_outcome(
+    #         df=df,
+    #         matchup_team=matchup_team
+    #     )
+    if graph_type == GraphTypeCode.BOX.value:
         fig = make_team_statistics_graph_type_box(
             df=df, recent_game=recent_game,
             statistics_type=statistics_type, matchup_team=matchup_team
@@ -298,5 +301,84 @@ def make_team_statistics_graph(df, statistics_type, graph_type, matchup_team):
         xaxis_title=None, yaxis_title=None,
         height=600
     )
+
+    return fig
+
+def make_game_statistics_graph(df, statistics_type, league, matchup):
+    '''
+        Return figure
+
+        Parameters
+        ----------
+        df - result of the get_play_by_play_data() function
+        statistics_type - type of statistics to vizualize: score diff, points dynamic, etc.
+
+        Returns
+        -------
+        Result figure
+    '''
+
+    home_team = find_team_info_by_abbreviation(league=league, abbreviation=matchup[:3])
+    road_team = find_team_info_by_abbreviation(league=league, abbreviation=matchup[-3:])
+
+    # sort values
+    df = df.sort_values(by=['period', 'periodTime'], ascending=[True, True])
+
+    # init figure
+    if statistics_type == StatisticsTypeCode.SCORE_DIFF.value:
+        fig = px.scatter(
+            data_frame=df,
+            x='periodTime', y='scoreDiff',
+            # markers=True,
+            color='scoreDiff'
+        )
+        # fig.update_traces(connectgaps=True)
+    if statistics_type == StatisticsTypeCode.PTS.value:
+        fig = px.scatter(
+            data_frame=df,
+            x='periodTime', y='points',
+            # markers=True,
+            color='teamTricode'
+        )
+    elif statistics_type == StatisticsTypeCode.FG2M.value:
+        fig = px.scatter(
+            data_frame=df,
+            x='periodTime', y='fg2m',
+            color='teamTricode',
+        )
+    elif statistics_type == StatisticsTypeCode.FG3M.value:
+        fig = px.scatter(
+            data_frame=df,
+            x='periodTime', y='fg3m',
+            color='teamTricode',
+        )
+    elif statistics_type == StatisticsTypeCode.REB.value:
+        fig = px.scatter(
+            data_frame=df,
+            x='periodTime', y='rebounds',
+            color='teamTricode',
+        )
+    elif statistics_type == StatisticsTypeCode.AST.value:
+        fig = px.scatter(
+            data_frame=df,
+            x='periodTime', y='assists',
+            color='teamTricode'
+        )
+
+    fig.update_layout(
+        title=dict(
+            text=f'{home_team['full_name']} vs. {road_team['full_name']}',
+            x=0.4, y=0.95
+        ),
+        coloraxis_showscale=False,
+        showlegend=False
+    )
+    fig.update_xaxes(tickformat='%M:%S')
+
+    # add images
+    # logo_paths = [
+    #     'streamlit_app/static/league_team_logo/' + league + '/' + str(home_team_id) + '.svg',
+    #     'streamlit_app/static/league_team_logo/' + league + '/' + str(road_team_id) + '.svg'
+    # ]
 
     return fig
