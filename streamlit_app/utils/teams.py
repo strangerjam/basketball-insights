@@ -3,7 +3,7 @@ import streamlit as st
 import pandas as pd
 
 from nba_api.stats.static import teams
-from nba_api.stats.endpoints import commonteamroster
+from nba_api.stats.endpoints import commonteamroster, teamestimatedmetrics
 
 from utils.league import LeagueCode
 
@@ -97,6 +97,23 @@ def find_team_info_by_abbreviation(league, abbreviation, value=None):
             print(f'Unknown league is selected: {league}')
     else:
         print('None team was selected')
+
+# get teams rating info
+# https://github.com/swar/nba_api/blob/master/docs/nba_api/stats/endpoints/boxscoreadvancedv3.md
+# https://github.com/swar/nba_api/blob/master/docs/nba_api/stats/endpoints/teamestimatedmetrics.md
+@st.cache_data(ttl=3600, show_spinner=False)
+def get_team_rating(league, season):
+    try:
+        team_metrics = teamestimatedmetrics.TeamEstimatedMetrics(
+            league_id=league,
+            season=season
+        ).team_estimated_metrics.get_data_frame()
+    except ConnectionError:
+        print('Couldn`t get Team Estimated Metrics')
+    else:
+        print('Team Estimated Metrics data received successfully')
+        return team_metrics
+
 
 def team_head_coach(team_id, season_year):
     '''

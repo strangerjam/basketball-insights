@@ -20,16 +20,16 @@ pg = st.navigation(
 st.set_page_config(
     page_title='Basketball Insights',
     layout='wide',
-    menu_items={
-        'About': "App development in progres..."
-    }
+    # menu_items={
+    #     'About': "App development in progress..."
+    # }
 )
 
-st.text(
-    '''
-        App development in progres...
-    '''
-)
+# st.text(
+#     '''
+#         App development in progress...
+#     '''
+# )
 
 # main controls that will be used across pages
 main_controls()
