@@ -11,7 +11,7 @@ team_rating = get_team_rating(
 
 st.plotly_chart(
     make_league_rating_graph(df=team_rating, league=st.session_state.league),
-    config={'staticPlot': True}
+    config={'displayModeBar': False}
 )
 
 # st.write(
