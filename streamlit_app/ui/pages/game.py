@@ -65,10 +65,10 @@ if st.session_state.matchup:
         game_graph
     )
 
-    st.write(
-        selected_game
-    )
+    # st.write(
+    #     selected_game
+    # )
 
-    st.write(
-        play_by_play#.query('actionType in ("Made Shot", "Free Throw")')
-    )
+    # st.write(
+    #     play_by_play#.query('actionType in ("Made Shot", "Free Throw")')
+    # )

@@ -3,10 +3,14 @@ import plotly.graph_objects as go
 import plotly.io as pio
 
 import pandas as pd
+import numpy as np
+from math import floor, ceil
 from datetime import datetime, timedelta
 
+from PIL import Image
+
 from utils.params import STATISTICS_TYPE, StatisticsTypeCode, OutcomeName, GraphTypeCode
-from utils.teams import find_team_info_by_abbreviation
+from utils.teams import find_team_info_by_id, find_team_info_by_abbreviation
 
 # set default template for all graphs
 pio.templates.default = "plotly_white"
@@ -273,7 +277,7 @@ def make_team_statistics_graph(df, statistics_type, graph_type, matchup_team):
     else:
         recent_game = None
         
-    print(df.iloc[0, ])
+    # print(df.iloc[0, ])
 
     # make graph depends on UI's inputs
     # if statistics_type == StatisticsTypeCode.OUTCOME.value:
@@ -380,5 +384,213 @@ def make_game_statistics_graph(df, statistics_type, league, matchup):
     #     'streamlit_app/static/league_team_logo/' + league + '/' + str(home_team_id) + '.svg',
     #     'streamlit_app/static/league_team_logo/' + league + '/' + str(road_team_id) + '.svg'
     # ]
+
+    return fig
+
+def make_league_rating_graph(df, league):
+    '''
+        Return figure
+
+        Parameters
+        ----------
+        df - dataframe with rating info for each team in the league
+
+        Returns
+        -------
+        Result figure
+    '''
+
+    min_range = floor(min(
+        df.E_OFF_RATING.agg({'min', 'max'}).loc['min'],
+        df.E_DEF_RATING.agg({'min', 'max'}).loc['min']
+    ))
+
+    max_range = ceil(max(
+        df.E_OFF_RATING.agg({'min', 'max'}).loc['max'],
+        df.E_DEF_RATING.agg({'min', 'max'}).loc['max']
+    ))
+
+    axes_range = [min_range, max_range]
+
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatter(
+            x=df.E_OFF_RATING,
+            y=df.E_DEF_RATING,
+            mode='text',
+            customdata=np.stack(
+                arrays=(df.E_NET_RATING, df.TEAM_NAME),
+                axis=-1
+            ),
+            text=[
+                find_team_info_by_id(team_id=id, league=league, value='abbreviation')
+                for id in df.TEAM_ID
+            ],
+            textfont=dict(
+                color='gray'
+            ),
+            hovertemplate=
+                "<b>%{customdata[1]}</b><br>"
+                "Net Rating: %{customdata[0]:.1f}<br>"
+                "Offensive Rating: %{x:.1f}<br>"
+                "Defensive Rating: %{y:.1f}<br>"
+                "<extra></extra>"
+        )
+    )
+
+    # add team images
+    # for team_id in df.TEAM_ID.unique():
+    #     fig.add_layout_image(
+    #         source=Image.open(f'streamlit_app/static/league_team_logo/{league}/{team_id}.png'),
+    #         sizex=1.5,
+    #         sizey=1.5,
+    #         name=find_team_info_by_id(team_id=team_id, league=league, value='abbreviation'),
+    #         xref='x',
+    #         yref='y',
+    #         # x=games.loc[(games["GAME_NUM"] == game_num) & (games["TEAM"]==t), "CUME_OFF_RATING"].values[0],
+    #         # y=games.loc[(games["GAME_NUM"] == game_num) & (games["TEAM"]==t), "CUME_DEF_RATING"].values[0],
+    #         layer='above',
+    #         opacity=1, xanchor='center', yanchor='middle'
+    #     )
+
+    base_color = '#F4F3EE'
+
+    # Base Layouts
+    fig.update_layout(
+        plot_bgcolor=base_color,
+        height=800,
+        width=800,
+        margin_t=0
+    )
+    fig.update_xaxes(
+        gridcolor=base_color,
+        range=axes_range,
+        showgrid=False
+    )
+    fig.update_yaxes(
+        gridcolor=base_color,
+        autorange='reversed',
+        range=axes_range,
+        showgrid=False
+    )
+
+    # Get center location of chart
+    line_location = (axes_range[0]+axes_range[1])/2
+
+    # define annotation color
+    annotation_color = '#0A0403'
+
+    # x-axis line pointing right
+    fig.add_annotation(
+        x=min_range,
+        y=line_location,
+        xref='x', yref='y',
+        text='',
+        showarrow=True,
+        axref='x', ayref='y',
+        ax=max_range,
+        ay=line_location,
+        arrowhead=3,
+        arrowwidth=1,
+        arrowcolor=annotation_color
+    )
+
+    # x-axis line pointing left
+    fig.add_annotation(
+        x=max_range,
+        y=line_location,
+        xref='x', yref='y',
+        text='',
+        showarrow=True,
+        axref='x', ayref='y',
+        ax=min_range,
+        ay=line_location,
+        arrowhead=3,
+        arrowwidth=1,
+        arrowcolor=annotation_color
+    )
+    # x-axis label
+    fig.add_annotation(
+        x=max_range-2.15,
+        y=line_location+0.35,
+        align='center',
+        text=f'Offensive Efficiency',
+        font=dict(size=14),
+        showarrow=False,
+        font_color=annotation_color
+    )
+    
+    # y-axis line pointing down
+    fig.add_annotation(
+        x=line_location,
+        y=min_range,
+        xref='x', yref='y',
+        text='',
+        showarrow=True,
+        axref='x', ayref='y',
+        ax=line_location,
+        ay=max_range,
+        arrowhead=3,
+        arrowwidth=1,
+        arrowcolor=annotation_color
+    )
+    # y-axis line pointing up
+    fig.add_annotation(
+        x=line_location,
+        y=max_range,
+        xref='x', yref='y',
+        text='',
+        showarrow=True,
+        axref='x', ayref='y',
+        ax=line_location,
+        ay=min_range,
+        arrowhead=3,
+        arrowwidth=1,
+        arrowcolor=annotation_color
+    )
+    fig.add_annotation(
+        x=line_location,
+        y=max_range+0.5,
+        align='center',
+        text=f'Defensive Efficiency',
+        font=dict(size=14),
+        showarrow=False,
+        textangle=0,
+        font_color=annotation_color
+    )
+
+    # diagonal line
+    fig.add_shape(
+        type="line",
+        # starting coordinates
+        x0=min_range+0.5, y0=min_range+0.5,
+        # ending coordinates
+        x1=max_range-0.5, y1=max_range-0.5,
+        # Make sure the points are on top of the line
+        layer="below",
+        # Style it like the axis lines
+        line=dict(dash='dash', color='gray', width=1)
+    )
+
+    # diagonal annotation -> positive/negative teams
+    fig.add_annotation(
+        x=min_range+3.5,
+        y=min_range,
+        align='left',
+        text=f'Positive Teams',
+        font=dict(size=11, color='gray'),
+        showarrow=False,
+        textangle=0,
+    )
+    fig.add_annotation(
+        x=min_range+1.5,
+        y=min_range+3.5,
+        align='left',
+        text=f'Negative Teams',
+        font=dict(size=11, color='gray'),
+        showarrow=False,
+        textangle=0
+    )
 
     return fig

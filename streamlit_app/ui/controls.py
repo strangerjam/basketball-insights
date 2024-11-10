@@ -25,7 +25,6 @@ def selected_page():
         'page': page
     }
 
-
 def format_game_date(date_str):
     '''
         Format date string to `01 Jan, 2024` format
